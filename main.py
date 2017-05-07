@@ -169,7 +169,7 @@ while True:
     elif command == "update":
         main_imp.run_sh_script(GIT_PUSH_SH)
         time.sleep(2)
-        main_imp.broadcast_message(UPDATE_PORT, "RBOOT" + HOST)
+        main_imp.broadcast_message(UPDATE_PORT, "RBOOT")
         results = main_imp.tcp_select_receive(HOST, UPDATE_PORT, BUFFERSIZE, TIMEOUT, MAX_CLIENT)
         for result in results:
             if main_imp.is_json(result):
