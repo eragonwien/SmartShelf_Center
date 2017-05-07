@@ -51,7 +51,8 @@ def check_data_file(datapath: str):
         data = []
         set_obj_in_file(data, datapath)
 
-
+def run_sh_script(script_name):
+    os.system(script_name)
 # -----------------------------------------------VALUE CHECK------------------------------------------------------------
 
 def is_int(text: str):
@@ -447,18 +448,17 @@ def display_stock(connectionpath, datapath, port):
             print("NODE Nr.",str(node["id"]),"is offline")
         else :
             print("NODE Nr.",str(node["id"]))
-        sensor_list = node["sensors"]
-        for json_result in stock_list:
-            result = json.loads(json_result)
-            if result[0] == node["id"]:
-                for i in range(1,len(result)):
-                    sensor = sensor_list[i - 1]
-                    if sensor["status"] == "offline":
-                        print(str(i-1),"is offline")
-                        continue
-
-                    item_stock = int(result[i])
-                    if item_stock <= 1 :
-                        print(str(i-1),"has",str(item_stock),"item")
-                    else:
-                        print(str(i-1),"has",str(item_stock),"items")
+            sensor_list = node["sensors"]
+            for json_result in stock_list:
+                result = json.loads(json_result)
+                if result[0] == node["id"]:
+                    for i in range(1,len(result)):
+                        sensor = sensor_list[i - 1]
+                        if sensor["status"] == "offline":
+                            print(str(i-1),"is offline")
+                            continue
+                        item_stock = int(result[i])
+                        if item_stock <= 1 :
+                            print(str(i-1),"has",str(item_stock),"item")
+                        else:
+                            print(str(i-1),"has",str(item_stock),"items")

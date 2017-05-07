@@ -2,11 +2,14 @@ import main_imp
 import socket
 import json
 import time
+
 HOST = socket.gethostbyname(socket.gethostname())
+VERSION = '1.0'
 REGISTER_PORT = 51212
 ALIVE_PORT = 51213
 STOCK_PORT = 51214
 CONFIG_PORT = 51215
+UPDATE_PORT = 51216
 BUFFERSIZE = 2048
 MAX_CLIENT = 10
 DATA_PATH = "data.txt"
@@ -14,13 +17,19 @@ CONNECTION_PATH = "connection.txt"
 RECONNECTION_TIMES = 3
 TIMEOUT = 3
 ALIVE_INTERVALL = 10
+
+######
+GIT_PUSH_SH = 'git_push.sh'
+
+
+
 main_imp.check_connection_file(CONNECTION_PATH, HOST, REGISTER_PORT, ALIVE_PORT, STOCK_PORT, CONFIG_PORT, BUFFERSIZE,
                                MAX_CLIENT, TIMEOUT, RECONNECTION_TIMES, ALIVE_INTERVALL)
 print("Connection data loaded...")
 main_imp.check_data_file(DATA_PATH)
 print("Data loaded...")
 # Node Register receive broadcasts on port 51212
-registor = main_imp.NodeRegister(CONNECTION_PATH,DATA_PATH)
+registor = main_imp.NodeRegister(CONNECTION_PATH, DATA_PATH)
 # Alive Checker broadcasts on port 51213
 alice = main_imp.AliveChecker(CONNECTION_PATH, DATA_PATH, ALIVE_INTERVALL)
 # Command line
@@ -30,8 +39,9 @@ while True:
     print("online - display online node")
     print("power - turn a sensor on/off")
     print("mod - mod existing sensor of existing node")
-    print("reboot - force specific node to reboot itself")
-    #print("del - del existing node locally")
+    print("update - force specific node to update and reboot itself")
+    print("test - test node")
+    # print("del - del existing node locally")
     print("close - close program")
     command = input("")
     if command == "close":
@@ -70,19 +80,19 @@ while True:
                     else:
                         # change setting one by one
                         for key, item in sensor.items():
-                            if key in ["in", "out","status"]:
+                            if key in ["in", "out", "status"]:
                                 continue
                             new_value = input(str(key) + " : ")
                             if new_value:
                                 sensor[key] = new_value
                         data = main_imp.get_obj_from_file(DATA_PATH)
-                        node = main_imp.find_node_by_id(node_id,DATA_PATH)
-                        main_imp.replace_sensor(int(sensor_index),sensor,node)
+                        node = main_imp.find_node_by_id(node_id, DATA_PATH)
+                        main_imp.replace_sensor(int(sensor_index), sensor, node)
                         main_imp.replace_node(node_id, node, data)
                         main_imp.set_obj_in_file(data, DATA_PATH)
                         # push update
                         update = [node_id, node["sensors"]]
-                        main_imp.broadcast_message(CONFIG_PORT,json.dumps(update))
+                        main_imp.broadcast_message(CONFIG_PORT, json.dumps(update))
                     break
 
     # turning existing sensor on / off
@@ -119,10 +129,10 @@ while True:
 
                 data = main_imp.get_obj_from_file(DATA_PATH)
                 node = main_imp.find_node_by_id(node_id, DATA_PATH)
-                main_imp.replace_sensor(int(sensor_index),sensor,node)
+                main_imp.replace_sensor(int(sensor_index), sensor, node)
                 main_imp.replace_node(node_id, node, data)
                 main_imp.set_obj_in_file(data, DATA_PATH)
-                print("Sensor Status changed to",sensor["status"])
+                print("Sensor Status changed to", sensor["status"])
                 # push update
                 update = [node_id, node["sensors"]]
                 main_imp.broadcast_message(CONFIG_PORT, json.dumps(update))
@@ -147,26 +157,30 @@ while True:
                 if node["id"] == node_id:
                     del data[i]
                     break
-            main_imp.set_obj_in_file(data,DATA_PATH)
-            print("Node",node_id,"deleted")
+            main_imp.set_obj_in_file(data, DATA_PATH)
+            print("Node", node_id, "deleted")
 
     elif command == "online":
         data = main_imp.get_obj_from_file(DATA_PATH)
         for node in data:
-            print(str(node["id"])," : ",node["status"])
+            print(str(node["id"]), " : ", node["status"])
         print()
 
-    elif command == "reboot":
-        print("Choose one of the following NODE Index :")
-        main_imp.print_nodes_list(DATA_PATH)
-        node_input = input("")
-        node_id = ""
-        if main_imp.is_int(node_input):
-            node_id = main_imp.find_node_id_by_index(int(node_input), DATA_PATH)
-        else:
-            node_id = node_input
-        # show sensor
-        if not main_imp.is_node_in_list(node_id, DATA_PATH):
-            print("Node ID not found")
-        else:
-            main_imp.broadcast_message(CONFIG_PORT, node_id)
+    elif command == "update":
+        main_imp.run_sh_script(GIT_PUSH_SH)
+        time.sleep(2)
+        main_imp.broadcast_message(UPDATE_PORT, "RBOOT" + HOST)
+        results = main_imp.tcp_select_receive(HOST, UPDATE_PORT, BUFFERSIZE, TIMEOUT, MAX_CLIENT)
+        for result in results:
+            if main_imp.is_json(result):
+                print(json.loads(result), " is updating...")
+            else:
+                print("ERROR : ", result)
+    elif command == "test":
+        main_imp.broadcast_message(UPDATE_PORT, "TESTS" + HOST)
+        results = main_imp.tcp_select_receive(HOST, UPDATE_PORT, BUFFERSIZE, TIMEOUT, MAX_CLIENT)
+        for result in results:
+            if main_imp.is_json(result):
+                print(json.loads(result))
+            else:
+                print(result)
