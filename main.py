@@ -171,6 +171,7 @@ while True:
         time.sleep(2)
         main_imp.broadcast_message(UPDATE_PORT, "RBOOT" + HOST)
         results = main_imp.tcp_select_receive(HOST, UPDATE_PORT, BUFFERSIZE, TIMEOUT, MAX_CLIENT)
+        print(results)
         for result in results:
             if main_imp.is_json(result):
                 print(json.loads(result), " is updating...")
