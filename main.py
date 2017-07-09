@@ -5,7 +5,7 @@ import time
 #####
 HOST = socket.gethostbyname(socket.gethostname())
 print(HOST)
-VERSION = 'v1.4'
+VERSION = 'v1.6'
 PORT = 51212
 A_PORT = 51213
 BUFFERSIZE = 2048
@@ -20,7 +20,7 @@ UPDATE_SETTING_FILE = 'update_setting.txt'
 UPDATES_DIR = 'updates'
 UPDATES_FILENAME = 'updates.zip'
 NODE_DIR = 'SmartShelf_Node'
-NODE_FILE_LIST = ['node.py', 'node_imp.py']
+NODE_FILE_LIST = ['node.py', 'node_imp.py', 'sonic_measure.py']
 #####
 main_imp.check_connection_file(CONNECTION_PATH, HOST, PORT, A_PORT, BUFFERSIZE, MAX_CLIENT, TIMEOUT, RECONNECTION_TIMES,
                                ALIVE_INTERVAL)
@@ -170,5 +170,3 @@ while True:
             result_content = json.loads(result)
             (node_id, node_version) = result_content
             print(node_id, 'has version', node_version)
-
-

@@ -46,7 +46,7 @@ def check_data_file(data_file: str):
 
 
 def check_update_setting_file(update_setting_file: str, update_directory: str, update_filename: str,
-                              node_directory: str, node_file_list: str):
+                              node_directory: str, node_file_list: list):
     if not os.path.isfile(update_setting_file):
         data = {'update_dir': update_directory, 'update_filename': update_filename,
                 'node_dir': node_directory, 'node_file_list': node_file_list}
@@ -101,7 +101,7 @@ def is_json(json_string: str) -> bool:
         return False
 
 
-def is_new_version(current_version:str, target_version: str)->bool:
+def is_new_version(current_version: str, target_version: str)->bool:
     new_version = True
     if target_version[0] != 'v':
         return False
@@ -216,7 +216,6 @@ def broadcast_message(port, message: str):
         sock.close()
     except socket.error:
         sock.close()
-
 
 # -----------------------------------------------NODE--------------------------------------------------------------------
 
@@ -444,8 +443,16 @@ def display_stock(connection_file, data_file, port):
                 for i in range(len(stocks)):
                     if isinstance(stocks[i], str):
                         print('\t', str(i), 'has', stocks[i])
-                    elif stocks[i] < 0:
-                        print('\t', str(i), 'has negative result :', str(stocks[i]))
+                    elif stocks[i] == -1:
+                        print('\t', str(i), 'has GPIO Error')
+                    elif stocks[i] == -2:
+                        print('\t', str(i), 'is timed out')
+                    elif stocks[i] == -3:
+                        print('\t', str(i), 'incorrect configuration (value below zero)')
+                    elif stocks[i] == -4:
+                        print('\t', str(i), 'incorrect configuration (item is larger then its container)')
+                    elif stocks[i] == -5:
+                        print('\t', str(i), 'Arithmetic Error')
                     elif stocks[i] <= 1:
                         print('\t', str(i), 'has', str(stocks[i]), 'item')
                     elif stocks[i] > 1:
